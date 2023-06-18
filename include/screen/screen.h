@@ -22,8 +22,6 @@ typedef struct {
 
     char description[255];
 
-    char instructions[255];
-
     void *previous;
 
     void *next;

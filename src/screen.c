@@ -27,19 +27,21 @@ void setScreenTo(Screen *screen, int to) {
         screen->id = SCREEN_CREATE_CONTACT;
         strcpy(screen->name, "Create Contact Screen");
         strcpy(screen->description, "A contact consists of the persons' name, and several associated numbers");
-        strcpy(screen->instructions, "");
     }
     else if(to == SCREEN_CONTACT_LIST) {
         screen->id = SCREEN_CONTACT_LIST;
         strcpy(screen->name, "View contacts Screen");
         strcpy(screen->description, "You can view your contacts here");
-        strcpy(screen->instructions, "");
+    }
+    else if(to == SCREEN_UPDATE_CONTACT) {
+        screen->id = SCREEN_UPDATE_CONTACT;
+        strcpy(screen->name, "Update contact Screen");
+        strcpy(screen->description, "Here to show you a particular contact information");
     }
     else { //Home/Start screen
         screen->id = 0;
         strcpy(screen->name, "Home Screen");
         strcpy(screen->description, "Welcome to the Phonebook app.");
-        strcpy(screen->instructions, "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
     }
 }
 
@@ -88,9 +90,11 @@ static bool getAddMoreInput() {
 }
 
 int performScreenAction(Screen screen) {
-    printf("%s\n%s\n", screen.description, screen.instructions);
+    printf("%s\n", screen.description);
 
     if(screen.id == 0) { //Start/Home screen
+        printf("%s\n", "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
+
         while (true) {
             printf("Input: ");
 
@@ -102,7 +106,6 @@ int performScreenAction(Screen screen) {
                 return SCREEN_CREATE_CONTACT;
             }
             else if(input == '2') {
-                printf("You entered 2\n");
                 return SCREEN_CONTACT_LIST;
             }
             else if (input == '0') return EXIT;
@@ -153,13 +156,15 @@ int performScreenAction(Screen screen) {
         printf("Enter 0 to go back \n");
 
         while(true) {
+            printf("Input: ");
+
             char input = (char) getchar();
             getchar(); //Clear the buffer
 
             if(input == 0) return SCREEN_PREVIOUS;
             else if(input > -1 && input <= contact_size) {
                 selected_contact = &(contacts[input+1]);
-                return SCREEN_NEXT;
+                return SCREEN_UPDATE_CONTACT;
             }
             else printf("Invalid input\n");
         }
