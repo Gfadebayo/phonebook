@@ -97,12 +97,10 @@ static int home_action() {
         char input = (char) getchar();
         getchar(); //remove the new line entered
 
-        if(input == '1') {
-            return SCREEN_CREATE_CONTACT;
-        }
-        else if(input == '2') {
-            return SCREEN_CONTACT_LIST;
-        }
+        if (input == '1') return SCREEN_CREATE_CONTACT;
+
+        else if (input == '2') return SCREEN_CONTACT_LIST;
+
         else if (input == '0') return EXIT;
 
         else {
@@ -134,8 +132,8 @@ static int create_contact_action() {
 
     bool isSaved = save_contact(contact, true);
 
-    if (isSaved) printf("Contact (%s) saved\n", contact.name);
-    else printf("Error saving contact\n");
+    if (isSaved) printf("Contact (%s) saved\n\n", contact.name);
+    else printf("Error saving contact\n\n");
 
     return SCREEN_PREVIOUS;
 }
