@@ -2,7 +2,7 @@
 // Created by Fuad on 04/06/2023.
 //
 
-#include <contact.h>
+#include <contact/contact.h>
 #include <jansson.h>
 #include <string.h>
 #include <time.h>
@@ -10,6 +10,10 @@
 
 #define SAVE_FILE "phonebook.json"
 
+/**
+ * Points to the next id to be used to store a new contact
+ */
+static int id = 0;
 static json_t *phonebook_json;
 
 static void json_to_contact(json_t *json, Contact *contact) {
@@ -37,7 +41,7 @@ void load_db_file() {
     if(file) {
         phonebook_json = json_loadf(file, JSON_ALLOW_NUL, &error);
 
-        printf("Error %s", error.text);
+        id = get_contact_size();
     }
     else if(errno == ENOENT) {
         phonebook_json = json_array();
@@ -63,7 +67,7 @@ bool save_contact(Contact contact, bool isNew) {
 
     long long created = isNew ? now : contact.created_at;
 
-    json_object_set_new(contact_json, "id", json_integer(contact.id));
+    json_object_set_new(contact_json, "id", json_integer(isNew ? id++ : contact.id));
     json_object_set_new(contact_json, "name", json_string(contact.name));
     json_object_set_new(contact_json, "number", numbers_array);
     json_object_set_new(contact_json, "created_at", json_integer(created));
@@ -102,5 +106,9 @@ void get_all_contacts(Contact *contacts) {
 
         contacts[i] = contact;
     }
+}
+
+void delete_contact(int contact_id) {
+    json_array_remove(phonebook_json, contact_id);
 }
 

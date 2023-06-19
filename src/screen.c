@@ -5,12 +5,13 @@
  * Structure of a screen is to display instructions to the user, then perform their actions based on those instructions
  */
 
-#include <screen.h>
+#include <screen/screen.h>
 #include <malloc.h>
 #include <string.h>
-#include <contact.h>
+#include <contact/contact.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <util/utils.h>
 
 static Contact *selected_contact;
 
@@ -39,20 +40,19 @@ void setScreenTo(Screen *screen, int to) {
         strcpy(screen->description, "Here to show you a particular contact information");
     }
     else { //Home/Start screen
-        screen->id = 0;
+        screen->id = SCREEN_HOME;
         strcpy(screen->name, "Home Screen");
         strcpy(screen->description, "Welcome to the Phonebook app.");
     }
 }
 
 void setNextScreen(Screen *screen) {
-    if (screen->id == 0) setScreenTo(screen, SCREEN_CREATE_CONTACT);
+    if (screen->id == SCREEN_HOME) setScreenTo(screen, SCREEN_CREATE_CONTACT);
     else if(screen->id == SCREEN_CREATE_CONTACT) setScreenTo(screen, SCREEN_CONTACT_LIST);
     else { //Create contact screen
         screen->id = 0;
         strcpy(screen->name, "Home Screen");
         strcpy(screen->description, "Welcome to the Phonebook app.");
-        strcpy(screen->instructions, "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
     }
 }
 
@@ -60,20 +60,6 @@ void setPreviousScreen(Screen *screen) {
     if (screen->id == SCREEN_CREATE_CONTACT) setScreenTo(screen, -1); //Create contact screen
     else if(screen->id == SCREEN_CONTACT_LIST) setScreenTo(screen, -1);
     else if(screen->id == SCREEN_UPDATE_CONTACT) setScreenTo(screen, SCREEN_CONTACT_LIST);
-}
-
-/**
- * Checks the input if it has a new line to determine
- * if the input buffer is empty or not. If the new line is present,
- * it clears the remaining unneeded characters in the buffer
- * @param holder
- */
-void clearBuffer(char *holder) {
-    if(!strchr(holder, '\n')) {
-        //these 2 clears the buffer up to the new line
-        scanf("%*[^\n]");
-        scanf("%*c");
-    }
 }
 
 static bool getAddMoreInput() {
@@ -89,87 +75,128 @@ static bool getAddMoreInput() {
     }
 }
 
-int performScreenAction(Screen screen) {
+int perform_screen_action(Screen screen) {
     printf("%s\n", screen.description);
 
-    if(screen.id == 0) { //Start/Home screen
-        printf("%s\n", "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
+    if (screen.id == SCREEN_HOME) return home_action();
 
-        while (true) {
-            printf("Input: ");
+    else if (screen.id == SCREEN_CREATE_CONTACT) return create_contact_action();
 
-            char input = (char) getchar();
-            getchar(); //remove the new line entered
+    else if (screen.id == SCREEN_CONTACT_LIST) return view_contact_list_action();
 
-            if(input == '1') {
-                setNextScreen(&screen);
-                return SCREEN_CREATE_CONTACT;
-            }
-            else if(input == '2') {
-                return SCREEN_CONTACT_LIST;
-            }
-            else if (input == '0') return EXIT;
+    else if (screen.id == SCREEN_UPDATE_CONTACT) return update_contact_action();
 
-            else {
-                printf("Invalid input\n");
-                return INVALID;
-            }
-        }
-    }
-    else if(screen.id == SCREEN_CREATE_CONTACT) { //Create contact screen
-        Contact contact;
-        char tempStorage[255];
-
-        printf("Name:");
-        fgets(tempStorage, 255, stdin);
-        clearBuffer(tempStorage);
-        strcpy(contact.name, tempStorage);
-
-        for(int i = 0; i < ALLOWED_NUMBER_LIMIT; i++) {
-            printf("Number %d: ", i+1);
-            fgets(tempStorage, PHONE_NUMBER_LENGTH, stdin);
-            clearBuffer(tempStorage);
-            strcpy_s(contact.numbers[i], PHONE_NUMBER_LENGTH, tempStorage);
-
-            if(!getAddMoreInput()) break;
-        }
-
-        bool isSaved = save_contact(contact, true);
-
-        if(isSaved) printf("Contact (%s) saved\n", contact.name);
-        else printf("Error saving contact\n");
-
-        return SCREEN_PREVIOUS;
-    }
-    else if(screen.id == SCREEN_CONTACT_LIST) {
-        int contact_size = get_contact_size();
-        Contact contacts[contact_size];
-
-        get_all_contacts(contacts);
-
-        printf("You have %d contacts saved\n\n", contact_size);
-
-        for(int i = 1; i < contact_size+1; i++) {
-            printf("Enter %d to view %s\n", i, contacts[i-1].name);
-        }
-
-        printf("Enter 0 to go back \n");
-
-        while(true) {
-            printf("Input: ");
-
-            char input = (char) getchar();
-            getchar(); //Clear the buffer
-
-            if(input == 0) return SCREEN_PREVIOUS;
-            else if(input > -1 && input <= contact_size) {
-                selected_contact = &(contacts[input+1]);
-                return SCREEN_UPDATE_CONTACT;
-            }
-            else printf("Invalid input\n");
-        }
-    }
     else return INVALID;
+}
+
+static int home_action() {
+    printf("%s\n", "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
+
+    while (true) {
+        printf("Input: ");
+
+        char input = (char) getchar();
+        getchar(); //remove the new line entered
+
+        if(input == '1') {
+            return SCREEN_CREATE_CONTACT;
+        }
+        else if(input == '2') {
+            return SCREEN_CONTACT_LIST;
+        }
+        else if (input == '0') return EXIT;
+
+        else {
+            printf("Invalid input\n");
+            return INVALID;
+        }
+    }
+}
+
+static int create_contact_action() { //Create contact screen
+    Contact contact;
+    char tempStorage[255];
+
+    printf("Name:");
+    fgets(tempStorage, 255, stdin);
+    clear_buffer(tempStorage);
+    strcpy(contact.name, tempStorage);
+
+    for (int i = 0; i < ALLOWED_NUMBER_LIMIT; i++) {
+        printf("Number %d: ", i + 1);
+        fgets(tempStorage, PHONE_NUMBER_LENGTH, stdin);
+        clear_buffer(tempStorage);
+        strcpy_s(contact.numbers[i], PHONE_NUMBER_LENGTH, tempStorage);
+
+        if (!getAddMoreInput()) break;
+    }
+
+    bool isSaved = save_contact(contact, true);
+
+    if (isSaved) printf("Contact (%s) saved\n", contact.name);
+    else printf("Error saving contact\n");
+
+    return SCREEN_PREVIOUS;
+}
+
+static int view_contact_list_action() {
+    int contact_size = get_contact_size();
+    Contact contacts[contact_size];
+
+    get_all_contacts(contacts);
+
+    printf("You have %d contacts saved\n\n", contact_size);
+
+    for (int i = 1; i < contact_size + 1; i++) {
+        printf("Enter %d to view %s\n", i, contacts[i - 1].name);
+    }
+
+    printf("Enter 0 to go back \n");
+
+    while (true) {
+        printf("Input: ");
+
+        int input = getchar() - '0';
+
+        getchar(); //Clear the buffer
+
+        if (input == 0) return SCREEN_PREVIOUS;
+        else if (input >= 0 && input <= contact_size) {
+            if (selected_contact == NULL) selected_contact = malloc(sizeof(Contact));
+            memcpy(selected_contact, &(contacts[input + 1]), sizeof(Contact));
+            return SCREEN_UPDATE_CONTACT;
+        } else printf("Invalid input\n");
+    }
+}
+
+static int update_contact_action() {
+    printf("Contact name: %s\n", selected_contact->name);
+    printf("Date created: %s\n", "2022");
+    printf("Last updated: %s\n", "2022");
+
+    printf("Enter\n1 to update contact name\n2 to change contact numbers\n3 to delete this contact\n4 to go back\n");
+
+    while (true) {
+        char input = (char) getchar();
+        getchar(); //clear input buffer
+
+        if (input == '1') {
+            char name[255];
+            printf("New name: ");
+            fgets(name, 255, stdin);
+            clear_buffer(name);
+
+            strcpy(selected_contact->name, name);
+
+            save_contact(*selected_contact, false);
+            printf("Name updated");
+        } else if (input == '2') {}
+        else if (input == '3') {
+            delete_contact(selected_contact->id);
+            return SCREEN_PREVIOUS;
+        } else if (input == '4') return SCREEN_PREVIOUS;
+        else printf("Invalid input\n");
+    }
 }
 
 

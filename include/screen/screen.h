@@ -5,13 +5,14 @@
 #ifndef PHONEBOOK_SCREEN_H
 #define PHONEBOOK_SCREEN_H
 
-#define INVALID (-1)
-#define EXIT 0
-#define SCREEN_NEXT 1
-#define SCREEN_PREVIOUS 2
-#define SCREEN_CREATE_CONTACT   3
-#define SCREEN_CONTACT_LIST     4
-#define SCREEN_UPDATE_CONTACT 5
+#define INVALID               (-1)
+#define EXIT                    0
+#define SCREEN_NEXT             1
+#define SCREEN_PREVIOUS         2
+#define SCREEN_HOME             3
+#define SCREEN_CREATE_CONTACT   4
+#define SCREEN_CONTACT_LIST     5
+#define SCREEN_UPDATE_CONTACT   6
 //#define SCREEN_CREATE_CONTACT 1
 //#define SCREEN_CREATE_CONTACT 1
 
@@ -45,8 +46,10 @@ void setNextScreen(Screen *screen);
  * Perform the action of a particular screen eg collecting input from the user
  * or simply moving to another screen
  * @param screen the screen with info to help determine what action should be performed
+ * @return the next screen to navigate. Might be something vague like SCREEN_NEXT or SCREEN_PREVIOUS
+ * or the exact screen to move to.
  */
-int performScreenAction(Screen screen);
+int perform_screen_action(Screen screen);
 
 /**
  * Overwrite the members in the Screen to the values of the previous screen
@@ -61,5 +64,10 @@ void setScreenTo(Screen *screen, int to);
 void displayInstructions();
 
 void displayNewContactInstructions();
+
+static int home_action();
+static int create_contact_action();
+static int update_contact_action();
+static int view_contact_list_action();
 
 #endif //PHONEBOOK_SCREEN_H

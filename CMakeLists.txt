@@ -3,14 +3,17 @@ project(Phonebook C)
 
 set(CMAKE_C_STANDARD 99)
 
+#-------------Just some helpers sha-------------------
+add_library(util STATIC src/util/utils.c)
+
+#-------------The core library for the app-------------
 add_library(core STATIC src/screen.c src/contact.c)
 
 target_include_directories(core
-        PUBLIC include/screen
-        PUBLIC include/contact
+        PUBLIC include
         PRIVATE lib)
 
-target_link_libraries(core jansson_d)
+target_link_libraries(core jansson_d util)
 
 target_link_directories(core PUBLIC lib)
 
@@ -26,7 +29,4 @@ else ()
 
     #target_include_directories(phonebook PRIVATE include)
     target_link_libraries(phonebook core)
-
-    target_include_directories(phonebook
-            PRIVATE include)
 endif ()

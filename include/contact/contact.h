@@ -27,4 +27,5 @@ bool save_contact(Contact contact, bool isNew);
 int get_contact_size();
 void get_all_contacts(Contact *contacts);
 void save_to_file();
+void delete_contact(int contact_id);
 #endif //PHONEBOOK_CONTACT_H
