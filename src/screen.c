@@ -10,20 +10,19 @@
 #include <string.h>
 #include <contact/contact.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <util/utils.h>
 
 static Contact *selected_contact;
 
-Screen initStartScreen() {
+Screen init_start_screen() {
     Screen *startScreen = malloc(sizeof(Screen));
 
-    setNextScreen(startScreen);
+    set_next_screen(startScreen);
 
     return *startScreen;
 }
 
-void setScreenTo(Screen *screen, int to) {
+void set_screen_to(Screen *screen, int to) {
     if(to == SCREEN_CREATE_CONTACT) {
         screen->id = SCREEN_CREATE_CONTACT;
         strcpy(screen->name, "Create Contact Screen");
@@ -46,23 +45,23 @@ void setScreenTo(Screen *screen, int to) {
     }
 }
 
-void setNextScreen(Screen *screen) {
-    if (screen->id == SCREEN_HOME) setScreenTo(screen, SCREEN_CREATE_CONTACT);
-    else if(screen->id == SCREEN_CREATE_CONTACT) setScreenTo(screen, SCREEN_CONTACT_LIST);
+void set_next_screen(Screen *screen) {
+    if (screen->id == SCREEN_HOME) set_screen_to(screen, SCREEN_CREATE_CONTACT);
+    else if(screen->id == SCREEN_CREATE_CONTACT) set_screen_to(screen, SCREEN_CONTACT_LIST);
     else { //Create contact screen
-        screen->id = 0;
+        screen->id = SCREEN_HOME;
         strcpy(screen->name, "Home Screen");
         strcpy(screen->description, "Welcome to the Phonebook app.");
     }
 }
 
-void setPreviousScreen(Screen *screen) {
-    if (screen->id == SCREEN_CREATE_CONTACT) setScreenTo(screen, -1); //Create contact screen
-    else if(screen->id == SCREEN_CONTACT_LIST) setScreenTo(screen, -1);
-    else if(screen->id == SCREEN_UPDATE_CONTACT) setScreenTo(screen, SCREEN_CONTACT_LIST);
+void set_previous_screen(Screen *screen) {
+    if (screen->id == SCREEN_CREATE_CONTACT) set_screen_to(screen, -1); //Create contact screen
+    else if(screen->id == SCREEN_CONTACT_LIST) set_screen_to(screen, -1);
+    else if(screen->id == SCREEN_UPDATE_CONTACT) set_screen_to(screen, SCREEN_CONTACT_LIST);
 }
 
-static bool getAddMoreInput() {
+static bool get_add_more_input() {
     while(true) {
         printf("Would you like to add another number [Y/N]: ");
 
@@ -90,7 +89,7 @@ int perform_screen_action(Screen screen) {
 }
 
 static int home_action() {
-    printf("%s\n", "Enter 1 to create a new contact\n2 to view existing contacts\n0 to exit");
+    printf("%s\n", "Enter\n1 to create a new contact\n2 to view existing contacts\n0 to exit");
 
     while (true) {
         printf("Input: ");
@@ -113,22 +112,24 @@ static int home_action() {
     }
 }
 
-static int create_contact_action() { //Create contact screen
+static int create_contact_action() {
     Contact contact;
     char tempStorage[255];
 
-    printf("Name:");
+    printf("Name: ");
     fgets(tempStorage, 255, stdin);
     clear_buffer(tempStorage);
     strcpy(contact.name, tempStorage);
+    contact.name[strcspn(contact.name, "\n")] = 0;
 
     for (int i = 0; i < ALLOWED_NUMBER_LIMIT; i++) {
         printf("Number %d: ", i + 1);
         fgets(tempStorage, PHONE_NUMBER_LENGTH, stdin);
         clear_buffer(tempStorage);
         strcpy_s(contact.numbers[i], PHONE_NUMBER_LENGTH, tempStorage);
+        contact.numbers[i][strcspn(contact.numbers[i], "\n")] = 0;
 
-        if (!getAddMoreInput()) break;
+        if (!get_add_more_input()) break;
     }
 
     bool isSaved = save_contact(contact, true);

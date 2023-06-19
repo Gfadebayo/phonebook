@@ -5,13 +5,13 @@
 int main() {
     load_db_file();
 
-    Screen startScreen = initStartScreen();
+    Screen startScreen = init_start_screen();
 
     int status;
     while((status = perform_screen_action(startScreen)) != EXIT) {
-        if(status == SCREEN_NEXT) setNextScreen(&startScreen);
-        else if(status == SCREEN_PREVIOUS) setPreviousScreen(&startScreen);
-        else setScreenTo(&startScreen, status);
+        if(status == SCREEN_NEXT) set_next_screen(&startScreen);
+        else if(status == SCREEN_PREVIOUS) set_previous_screen(&startScreen);
+        else set_screen_to(&startScreen, status);
     }
 
     printf("Saving...\n");
